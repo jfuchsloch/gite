@@ -3,6 +3,10 @@
 namespace App\Controller;
 
 
+
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+
 use App\Entity\Location;
 use App\Form\ContactType;
 use App\Message\ContactNotification;
@@ -16,11 +20,25 @@ use Symfony\Component\Routing\Annotation\Route;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $entityManager, MailerInterface $mailer): Response
     {
        $locations =  $entityManager->getRepository(Location::class)->findAll();
 
        dump($locations);
+
+
+        $email = (new Email())
+            ->from('hello@example.com')
+            ->to('you@example.com')
+            //->cc('cc@example.com')
+            //->bcc('bcc@example.com')
+            //->replyTo('fabien@example.com')
+            //->priority(Email::PRIORITY_HIGH)
+            ->subject('Time for Symfony Mailer!')
+            ->text('Sending emails is fun again!')
+            ->html('<p>See Twig integration for better HTML integration!</p>');
+
+        $mailer->send($email);
 
 
         return $this->render('home/index.html.twig', [
@@ -40,7 +58,8 @@ class HomeController extends AbstractController
             //dump($Form->getData());
 
         //   sleep(5);
-            $bus->dispatch(new ContactNotification('Look! I created a message!'));
+          //  $bus->dispatch(new ContactNotification('Look! I created a message!'));
+            $bus->dispatch(new ContactNotification($Form->get("field_name")->getData()));
 
             return $this->redirectToRoute("app_contact");
 
